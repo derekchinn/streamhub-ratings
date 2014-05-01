@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head></head>
+<body>
+    <div id="view"></div>
+    <script src="../lib/jquery/jquery.js"></script>
+    <script src="../lib/cajon/cajon.js"></script>
+    <script src="../lib/requirejs/require.js"></script>
+    <script src="../requirejs.conf.js"></script>
+    <script>
+        requirejs.config({
+            baseUrl: "../"
+        });
+    </script>
+    <script>
+        require([
+            "streamhub-sdk/jquery",
+            "streamhub-sdk/views/list-view",
+            "streamhub-ratings/streams/stats/distribution-stream"],
+        function($, ListView, DistributionStream){
+
+            var opts = {
+                network: "cnet.fyre.co",
+                siteId: "311569",
+                articleId: "30b2797e-7f37-4553-a9c5-f7e4d1acc7f2-review",
+                numQuantiles: 10
+            };
+
+            var stream = new DistributionStream(opts);
+            var view = new ListView({
+                el: document.getElementById("view")
+            });
+
+            stream.pipe(view);
+        });
+    </script>
+</body>
+</html>
