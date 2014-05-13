@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
-<head></head>
+<head>
+    <link rel="stylesheet" href="../src/styles/stats/dimension.css" />
+</head>
 <body>
     <div id="view"></div>
     <script src="../lib/jquery/jquery.js"></script>
@@ -15,18 +17,20 @@
     <script>
         require([
             "streamhub-sdk/jquery",
-            "streamhub-sdk/views/list-view",
-            "streamhub-ratings/streams/stats/distribution-stream"],
-        function($, ListView, DistributionStream){
+            "streamhub-sdk//views/list-view",
+            "streamhub-ratings/streams/stats/dimensions-stream",
+            "streamhub-ratings/views/stats/horizontal-stacked-bar-view"],
+        function($, ListView, DimensionsStream, HorizontalStackedBarView){
 
             var opts = {
                 network: "cnet.fyre.co",
                 siteId: "311569",
                 articleId: "30b2797e-7f37-4553-a9c5-f7e4d1acc7f2-review",
-                numQuantiles: 10
+                numQuantiles: 10,
+                dimensionView: HorizontalStackedBarView
             };
 
-            var stream = new DistributionStream(opts);
+            var stream = new DimensionsStream(opts);
             var view = new ListView({
                 el: document.getElementById("view")
             });

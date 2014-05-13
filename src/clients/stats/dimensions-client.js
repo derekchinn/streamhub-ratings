@@ -4,7 +4,7 @@ define([
 function($, base64) {
     'use strict';
 
-    var DistributionClient = function (opts) {
+    var DimensionsClient = function (opts) {
         opts = opts || {};
         this._version = opts.version || "v3.0";
         this._network = opts.network;
@@ -12,7 +12,7 @@ function($, base64) {
         this._articleId = opts.articleId;
     };
 
-    DistributionClient.prototype.getContent = function(opts, callback) {
+    DimensionsClient.prototype.getContent = function(opts, callback) {
         callback = callback || function() {};
         
         var numQuantiles = opts.numQuantiles || 5;
@@ -36,7 +36,7 @@ function($, base64) {
         this._makeRequest(url, params, callback);
     };
 
-    DistributionClient.prototype._makeRequest = function (url, params, callback) {
+    DimensionsClient.prototype._makeRequest = function (url, params, callback) {
         $.ajax({
             type: 'GET',
             url: url,
@@ -51,5 +51,5 @@ function($, base64) {
         });
     };
 
-    return DistributionClient;
+    return DimensionsClient;
 });

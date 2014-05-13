@@ -2,12 +2,12 @@ define([
     "streamhub-sdk/jquery",
     "inherits",
     "stream/readable",
-    "streamhub-ratings/clients/stats/distribution-client",
-    "streamhub-ratings/views/stats/distribution-dimension"],
-function ($, inherits, ReadableStream, DistributionClient, DimensionView) {
+    "streamhub-ratings/clients/stats/dimensions-client",
+    "streamhub-ratings/views/stats/dimension-view"],
+function ($, inherits, ReadableStream, DimensionsClient, DimensionView) {
     "use strict";
 
-    var DistributionStream = function (opts) {
+    var DimensionsStream = function (opts) {
         opts = opts || {};
 
         this._opts = opts;
@@ -16,14 +16,15 @@ function ($, inherits, ReadableStream, DistributionClient, DimensionView) {
         this._articleId = opts.articleId;
         this._numQuantiles = opts.numQuantiles;
 
-        this._client = new DistributionClient(opts);
+        this._client = opts.client || new DimensionsClient(opts);
+        this._dimensionView = opts.dimensionView || DimensionView;
         this._madeRequest = false;
 
         ReadableStream.call(this, opts);
     };
-    inherits(DistributionStream, ReadableStream);
+    inherits(DimensionsStream, ReadableStream);
 
-    DistributionStream.prototype._read = function () {
+    DimensionsStream.prototype._read = function () {
         if (this._madeRequest) {
             return this.push(null);
         }
@@ -45,17 +46,17 @@ function ($, inherits, ReadableStream, DistributionClient, DimensionView) {
         });
     };
 
-    DistributionStream.prototype._toDimensions = function (obj) {
+    DimensionsStream.prototype._toDimensions = function (obj) {
         var dimensionsArray = [];
 
         for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
-                dimensionsArray.push(new DimensionView(key, obj[key]));
+                dimensionsArray.push(new this._dimensionView({name: key, state: obj[key]}));
             }
         }
 
         return dimensionsArray;
     };
 
-    return DistributionStream;
+    return DimensionsStream;
 });

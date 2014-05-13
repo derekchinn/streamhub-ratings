@@ -40,6 +40,10 @@ require.config({
         name: "view",
         location: "lib/view/src",
         main: "view"
+    }, {
+        name: "streamhub-metrics",
+        location: "lib/streamhub-metrics/src",
+        main: "metric"
     }],
     shim: {
         jquery: {
