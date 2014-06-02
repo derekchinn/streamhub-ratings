@@ -2,3 +2,4 @@
 /node_modules
 .project
 .sass-cache/
+.DS_Store
