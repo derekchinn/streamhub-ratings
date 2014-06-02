@@ -33,6 +33,20 @@ function ($, inherits, Metric, RatingView, quantileMetricTemplate, stackedBarTem
          * @private
          */
         this._numQuantiles = Math.min(this.opts.numQuantiles || this.opts.options.length);
+
+        /**
+         * Total number of votes.
+         * @type {number}
+         * @private
+         */
+        this._numVotes = 0;
+
+        /**
+         * Array of metric objects built from the distribution data.
+         * @type {Array.<Metric>}
+         * @private
+         */
+        this._distributionToMetrics();
     };
     inherits(StackedBarView, RatingView);
 
@@ -50,18 +64,8 @@ function ($, inherits, Metric, RatingView, quantileMetricTemplate, stackedBarTem
     /** @override */
     StackedBarView.prototype.template = stackedBarTemplate;
 
-    StackedBarView.prototype._distributionToMetrics = function (percentize) {
-        var metrics = [];
-        var sumTotal = 0;
-        var idx = 0;
-
-        if (percentize) {
-            for (idx = 0; idx < this._numQuantiles; idx++) {
-                sumTotal += this._distribution[idx];
-            }
-        }
-
-        var label;
+    StackedBarView.prototype._calculatePercentages = function () {
+        this._metrics = [];
         var value;
 
         function percentizeValue(num, sumTotal) {
@@ -71,19 +75,33 @@ function ($, inherits, Metric, RatingView, quantileMetricTemplate, stackedBarTem
             return Math.floor(value / sumTotal * 1000) / 10;
         }
 
-        for (idx = 0; idx < this._numQuantiles; idx++) {
-            value = this._distribution[idx];
-            if (percentize) {
-                value = percentizeValue(value, sumTotal);
-            }
-            metrics.push({
-                text: this.opts.options[idx].text,
+        for (var i=0, len=this._numQuantiles; i<len; i++) {
+            value = this._distribution[i];
+            value = percentizeValue(value, this._numVotes);
+            this._metrics.push({
+                text: this.opts.options[i].text,
                 value: value
             });
-            this._state[idx] = value;
+            this._state[i] = value;
+        }
+    };
+
+    StackedBarView.prototype._distributionToMetrics = function () {
+        for (var idx = 0; idx < this._numQuantiles; idx++) {
+            this._numVotes += this._distribution[idx];
         }
 
-        return metrics;
+        // It's possible that the data hasn't made it through the back end
+        // completely, so the data isn't available. This will make the front
+        // end look foolish if the user has just posted.
+        if ($.isNumeric(this._selected)) {
+            if (this._distribution[this._selected] === 0) {
+                this._distribution[this._selected]++;
+                this._numVotes++;
+            }
+        }
+
+        this._calculatePercentages();
     };
 
     /** @override */
@@ -141,11 +159,9 @@ function ($, inherits, Metric, RatingView, quantileMetricTemplate, stackedBarTem
         // Convert the distribution to a metric array and add it to the
         // DOM node we're building up
         var $distributionEl = this.$el.find('.' + CLASSES.DISTRIBUTION);
-        var metrics = this._distributionToMetrics(true);
-        var state = [];
 
         for (var i = 0; i < this._numQuantiles; i++) {
-            var $el = $(quantileMetricTemplate(metrics[i]));
+            var $el = $(quantileMetricTemplate(this._metrics[i]));
             $distributionEl.append($el);
         }
 
@@ -155,16 +171,22 @@ function ($, inherits, Metric, RatingView, quantileMetricTemplate, stackedBarTem
             this.animateToState(this._state);
         }
 
-        if (this.opts.selectedOption === undefined) {
+        if (!$.isNumeric(this._selected)) {
             return;
         }
-        this.setSelected(this.opts.selectedOption);
+        this.setSelected(this._selected);
     };
 
     /** @override */
     StackedBarView.prototype.setSelected = function (dimension, opt_inc) {
         RatingView.prototype.setSelected.call(this, dimension);
-        !!opt_inc && this._state[dimension]++;
+        if (!opt_inc) {
+            return;
+        }
+        this._numVotes++;
+        this._distribution[dimension]++;
+        this._calculatePercentages();
+        this.render();
     };
 
     /** @override */

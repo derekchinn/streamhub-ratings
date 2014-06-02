@@ -108,7 +108,7 @@ function (
     /** @override */
     RatingSelectionView.prototype.getState = function () {
         var state = new Array(this._options.length);
-        if (this._selected !== undefined) {
+        if ($.isNumeric(this._selected)) {
             state[this._selected] = 100;
         }
         return state;
